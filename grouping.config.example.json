@@ -1,0 +1,38 @@
+{
+  "schedule": {"intervalMinutes": 60, "runOnStart": true},
+  "logging": {"level": "info", "maxEntries": 500, "maxFileSizeMb": 5, "keepFiles": 3},
+  "jira": {
+    "baseUrl": "https://your-company.atlassian.net",
+    "cloudId": "YOUR_ATLASSIAN_CLOUD_ID",
+    "projectKey": "DEMO",
+    "jql": "project=\"DEMO\" AND statusCategory!=Done ORDER BY created DESC",
+    "goalFieldName": "Goal",
+    "sprintFieldId": "customfield_10020"
+  },
+  "document": {
+    "title": "Jira backlog and sprints",
+    "outputPath": "data/jira-backlog-and-sprints.md",
+    "includeSummary": true,
+    "includeDescription": true,
+    "includeAssignee": true,
+    "includeStatus": true,
+    "includeIssueType": true,
+    "includeParent": true,
+    "issueTypeIcons": {"Epic": "⚡", "Task": "☑", "Story": "📖", "Bug": "🐞", "Sub-task": "◻", "Goal": "◆"},
+    "fallbackIssueTypeIcon": "•"
+  },
+  "grouping": {
+    "levels": ["goal", "theme", "placement"],
+    "emptyGoalLabel": "No Goal",
+    "placementOrder": ["active", "future", "backlog"],
+    "placementLabels": {"active": "Active sprint", "future": "Future sprint", "backlog": "Backlog"},
+    "closedSprintIssuesGoToBacklog": true,
+    "themes": [
+      {"name": "Platform", "pattern": "\\b(kubernetes|cloud|terraform|network)\\b"},
+      {"name": "Delivery", "pattern": "\\b(ci|cd|pipeline|build|deploy)\\b"},
+      {"name": "Security", "pattern": "\\b(security|iam|secret|certificate|sso)\\b"},
+      {"name": "Observability", "pattern": "\\b(monitor|logging|metric|alert)\\b"}
+    ],
+    "fallbackTheme": "Other"
+  }
+}

@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Jira DO Sync</title>
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/logs.css">
+  <link rel="stylesheet" href="/comments.css">
+</head>
+<body>
+  <header class="appbar">
+    <div class="brand"><span class="brand-mark">DO</span><div><strong>Jira document sync</strong><small>Docker MCP Gateway</small></div></div>
+    <div class="actions"><span id="status" class="status">Проверка…</span><button id="sync" class="primary">Обновить сейчас</button></div>
+  </header>
+  <nav class="tabs"><button class="tab active" data-view="document">Документ</button><button class="tab" data-view="logs">Журнал</button><button class="tab" data-view="config">Конфигурация</button></nav>
+  <div id="error-banner" class="error-banner" hidden><div><strong id="error-title">Ошибка синхронизации</strong><p id="error-detail"></p></div><button id="dismiss-error" class="quiet">Скрыть</button></div>
+  <main>
+    <section id="document" class="view active document-view">
+      <aside class="outline-panel">
+        <div class="outline-head"><span>Структура</span><button id="toggle-outline" class="icon-button" title="Скрыть структуру">‹</button></div>
+        <label class="search"><span>⌕</span><input id="search" type="search" placeholder="Найти в документе"></label>
+        <nav id="outline" class="outline"></nav>
+      </aside>
+      <div class="preview-shell">
+        <div class="viewer-toolbar">
+          <div class="viewer-info"><button id="show-outline" class="icon-button" title="Показать или скрыть структуру">☰</button><span id="document-meta">Markdown preview</span></div>
+          <div><button id="collapse-all" class="quiet">Свернуть</button><button id="expand-all" class="quiet">Развернуть</button></div>
+        </div>
+        <article id="markdown" class="markdown"></article>
+      </div>
+      <aside id="comments-panel" class="comments-panel" aria-label="Комментарии к задаче" hidden>
+        <div class="comments-head"><div><span>Локальные комментарии</span><strong id="comments-task"></strong></div><button id="close-comments" class="icon-button" aria-label="Закрыть комментарии">×</button></div>
+        <div id="comments-list" class="comments-list"></div>
+        <form id="comment-form" class="comment-form">
+          <label for="comment-text">Новый комментарий</label>
+          <textarea id="comment-text" maxlength="10000" placeholder="Добавьте заметку для команды…" required></textarea>
+          <div><button id="delete-comments" type="button" class="danger-button">Удалить все</button><button type="submit" class="primary">Добавить</button></div>
+          <p id="comment-message" role="status"></p>
+        </form>
+      </aside>
+    </section>
+    <section id="logs" class="view logs-view">
+      <div class="logs-head"><div><span class="section-label">OBSERVABILITY</span><h1>Журнал событий</h1><p>Последние события приложения и MCP-синхронизации. Секреты не записываются.</p></div><div class="log-actions"><select id="log-level" aria-label="Уровень логов"><option value="">Все уровни</option><option value="info">Info</option><option value="warn">Warning</option><option value="error">Error</option><option value="debug">Debug</option></select><button id="refresh-logs" class="primary">Обновить</button></div></div>
+      <div class="log-table"><div class="log-row log-header"><span>Время</span><span>Уровень</span><span>Событие</span><span>Сообщение</span></div><div id="log-entries"></div></div>
+    </section>
+    <section id="config" class="view config-view">
+      <div class="config-head"><div><span class="section-label">CONFIGURATION</span><h1>Паттерн группировки</h1><p>JSON проверяется при сохранении и применяется при следующей синхронизации.</p></div><button id="save" class="primary">Сохранить</button></div>
+      <textarea id="editor" spellcheck="false" aria-label="Конфигурация группировки"></textarea><pre id="message"></pre>
+    </section>
+  </main>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

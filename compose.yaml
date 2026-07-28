@@ -1,0 +1,19 @@
+services:
+  app:
+    build: .
+    environment:
+      MCP_URL: http://host.docker.internal:8811/mcp
+      MCP_AUTH_TOKEN: ${MCP_GATEWAY_AUTH_TOKEN}
+      CONFIG_PATH: /app/config/grouping.config.json
+      DATA_DIR: /app/data
+      LOG_PATH: /app/data/app.log
+      COMMENTS_PATH: /app/data/comments.json
+      PORT: 8080
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    volumes:
+      - ./grouping.config.json:/app/config/grouping.config.json
+      - ./data:/app/data
+    ports:
+      - "8080:8080"
+    restart: unless-stopped

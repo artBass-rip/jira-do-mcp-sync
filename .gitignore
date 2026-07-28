@@ -1,0 +1,13 @@
+node_modules/
+data/*
+!data/.gitkeep
+grouping.config.json
+export_do_jira.mjs
+.env
+*.env
+*.log
+*.pid
+.DS_Store
+.idea/
+.vscode/
+

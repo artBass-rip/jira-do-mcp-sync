@@ -1,6 +1,7 @@
 import {readFileSync, writeFileSync, mkdirSync} from 'node:fs';
 import {dirname} from 'node:path';
 import {McpClient} from './mcp-client.mjs';
+import {resolveInside} from './security.mjs';
 
 const textOf = result => result.content?.find(item => item.type === 'text')?.text;
 
@@ -71,7 +72,7 @@ function render(issues, config) {
   return md;
 }
 
-export async function synchronize(configPath, mcpUrl, mcpAuthToken = '', log = () => {}) {
+export async function synchronize(configPath, mcpUrl, mcpAuthToken = '', dataDir = 'data', log = () => {}) {
   const config = JSON.parse(readFileSync(configPath, 'utf8'));
   log('sync.config_loaded', 'Конфигурация синхронизации загружена', {project: config.jira.projectKey});
   const mcp = new McpClient(mcpUrl, mcpAuthToken);
@@ -89,7 +90,7 @@ return JSON.stringify(all.map(i=>({key:i.key,title:i.fields.summary||'',descript
   const raw = JSON.parse(textOf(result));
   const issues = Array.isArray(raw) ? raw : JSON.parse(textOf(raw));
   log('sync.issues_received', 'Задачи Jira получены', {issues: issues.length});
-  const output = config.document.outputPath;
+  const output = resolveInside(dataDir, config.document.outputPath);
   mkdirSync(dirname(output), {recursive: true});
   writeFileSync(output, render(issues, config));
   log('sync.document_written', 'Markdown-документ сохранён', {issues: issues.length, output});

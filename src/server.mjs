@@ -1,22 +1,26 @@
 import http from 'node:http';
 import {readFileSync, writeFileSync, existsSync} from 'node:fs';
-import {extname, join, resolve} from 'node:path';
+import {extname, resolve, sep} from 'node:path';
 import {synchronize} from './sync.mjs';
 import {Logger} from './logger.mjs';
 import {CommentStore} from './comments.mjs';
+import {isAuthorized, resolveInside, securityHeaders} from './security.mjs';
 
 const port = Number(process.env.PORT || 8080);
 const configPath = resolve(process.env.CONFIG_PATH || 'grouping.config.json');
 const mcpUrl = process.env.MCP_URL || 'http://gateway:8080/mcp';
 const mcpAuthToken = process.env.MCP_AUTH_TOKEN || '';
 const publicDir = resolve('public');
+const dataDir = resolve(process.env.DATA_DIR || 'data');
+const authUser = process.env.APP_AUTH_USER || 'admin';
+const authPassword = process.env.APP_AUTH_PASSWORD || '';
 const logger = new Logger(resolve(process.env.LOG_PATH || 'data/app.log'));
 const comments = new CommentStore(resolve(process.env.COMMENTS_PATH || 'data/comments.json'), logger);
 let state = {running: false, lastSuccess: null, lastError: null, issues: null};
 let timer;
 
 const json = (res, status, value) => {
-  res.writeHead(status, {'content-type': 'application/json; charset=utf-8'});
+  res.writeHead(status, {...securityHeaders, 'content-type': 'application/json; charset=utf-8'});
   res.end(JSON.stringify(value));
 };
 
@@ -29,7 +33,7 @@ async function syncNow() {
   state = {...state, running: true, lastError: null};
   logger.info('sync.started', 'Синхронизация запущена', {runId, mcpUrl});
   try {
-    const result = await synchronize(configPath, mcpUrl, mcpAuthToken, (event, message, context = {}) => logger.info(event, message, {runId, ...context}));
+    const result = await synchronize(configPath, mcpUrl, mcpAuthToken, dataDir, (event, message, context = {}) => logger.info(event, message, {runId, ...context}));
     const pruned = comments.prune(result.issueKeys);
     if (pruned.length) logger.info('comments.pruned', 'Удалены комментарии отсутствующих в документе задач', {runId, issues: pruned.length, comments: pruned.reduce((sum, item) => sum + item.comments, 0)});
     state = {...state, running: false, lastSuccess: result.updatedAt, issues: result.issues, output: result.output};
@@ -60,6 +64,11 @@ function body(req) {
 
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
+  if (url.pathname === '/api/health') return json(res, 200, {status: 'ok'});
+  if (!isAuthorized(req.headers.authorization, authUser, authPassword)) {
+    res.writeHead(401, {...securityHeaders, 'www-authenticate': 'Basic realm="TeamWork", charset="UTF-8"'});
+    return res.end('Authentication required');
+  }
   const commentPath = /^\/api\/comments\/([A-Z][A-Z0-9_]*-\d+)(?:\/([0-9a-f-]+))?$/.exec(url.pathname);
   if (url.pathname === '/api/status') return json(res, 200, state);
   if (url.pathname === '/api/comments' && req.method === 'GET') return json(res, 200, {comments: comments.all()});
@@ -88,6 +97,7 @@ const server = http.createServer(async (req, res) => {
     try {
       const config = JSON.parse(await body(req));
       if (!config.schedule || !config.jira || !config.document || !config.grouping) throw new Error('Отсутствуют обязательные секции конфигурации');
+      resolveInside(dataDir, config.document.outputPath);
       writeFileSync(configPath, `${JSON.stringify(config, null, 2)}\n`);
       logger.info('config.saved', 'Конфигурация сохранена через веб-интерфейс');
       schedule();
@@ -97,15 +107,15 @@ const server = http.createServer(async (req, res) => {
   if (url.pathname === '/api/sync' && req.method === 'POST') return json(res, 202, await syncNow());
   if (url.pathname === '/api/document') {
     const config = JSON.parse(readFileSync(configPath, 'utf8'));
-    const path = resolve(config.document.outputPath);
-    res.writeHead(existsSync(path) ? 200 : 404, {'content-type': 'text/markdown; charset=utf-8'});
+    const path = resolveInside(dataDir, config.document.outputPath);
+    res.writeHead(existsSync(path) ? 200 : 404, {...securityHeaders, 'content-type': 'text/markdown; charset=utf-8'});
     return res.end(existsSync(path) ? readFileSync(path) : '# Документ ещё не создан\n\nЗапустите синхронизацию.');
   }
   const file = url.pathname === '/' ? 'index.html' : url.pathname.slice(1);
-  const path = join(publicDir, file);
-  if (!path.startsWith(publicDir) || !existsSync(path)) { res.writeHead(404); return res.end('Not found'); }
+  const path = resolve(publicDir, file);
+  if (!path.startsWith(`${publicDir}${sep}`) || !existsSync(path)) { res.writeHead(404, securityHeaders); return res.end('Not found'); }
   const types = {'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8'};
-  res.writeHead(200, {'content-type': types[extname(path)] || 'application/octet-stream'});
+  res.writeHead(200, {...securityHeaders, 'content-type': types[extname(path)] || 'application/octet-stream'});
   res.end(readFileSync(path));
 });
 

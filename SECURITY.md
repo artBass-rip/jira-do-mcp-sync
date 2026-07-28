@@ -14,3 +14,4 @@ The maintainer aims to acknowledge reports within seven days. Disclosure timing 
 
 Never commit `grouping.config.json`, `.env` files, generated Jira documents, local comments, logs, runtime tokens, or credentials. Docker Desktop manages Atlassian OAuth; the launcher passes the local Gateway token only through runtime environment variables.
 
+The web service binds to localhost by default. Network deployments must set `APP_AUTH_PASSWORD`, use a strong unique value, and terminate HTTPS in a trusted reverse proxy. Generated-document paths are confined to the runtime `data/` directory.

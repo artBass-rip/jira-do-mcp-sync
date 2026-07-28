@@ -1,4 +1,4 @@
-# Jira Document Sync
+# TeamWork
 
 > **AI disclosure:** this project was created with the assistance of **OpenAI Codex (GPT-5)**. All generated code and documentation remain subject to human review.
 
@@ -26,4 +26,3 @@ Open <http://localhost:8080>.
 ## License
 
 [MIT](LICENSE)
-

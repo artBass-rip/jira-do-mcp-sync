@@ -1,8 +1,8 @@
-# Jira Document Sync
+# TeamWork
 
 > **Раскрытие использования ИИ:** проект создан при помощи **OpenAI Codex (GPT-5)**. Владелец проекта проверил и принял реализацию и документацию.
 
-Jira Document Sync периодически получает задачи Jira через авторизованный Docker MCP Gateway, группирует их, создаёт Markdown-документ и показывает его в веб-интерфейсе, похожем на редактор.
+TeamWork периодически получает задачи Jira через авторизованный Docker MCP Gateway, группирует их, создаёт Markdown-документ и показывает его в веб-интерфейсе, похожем на редактор.
 
 ## Возможности
 
@@ -45,6 +45,19 @@ MCP_GATEWAY_FOREGROUND=1 ./start.sh
 
 После запуска откройте <http://localhost:8080>.
 
+### Сетевой доступ и авторизация
+
+По умолчанию Compose публикует сервис только на `127.0.0.1`. Для доступа из доверенной сети явно включите Basic Auth и измените адрес:
+
+```bash
+APP_BIND_ADDRESS=0.0.0.0 \
+APP_AUTH_USER=owner \
+APP_AUTH_PASSWORD='длинный-случайный-пароль' \
+./start.sh
+```
+
+Не публикуйте сервис в интернете без HTTPS-прокси. Пароль передаётся только при запуске и не должен попадать в Git.
+
 ## Локальные данные
 
 Документ, комментарии, логи и PID-файлы находятся в `data/` и не публикуются. Комментарии не отправляются в Jira и не добавляются в Markdown.
@@ -57,7 +70,7 @@ npm run check
 docker compose build
 ```
 
-В GitHub Actions включены синтаксические проверки, `npm audit`, CodeQL и dependency review. Dependabot, secret scanning, push protection, приватные отчёты об уязвимостях и автоматические security updates включены в репозитории. Подробности — в [SECURITY.md](SECURITY.md).
+В GitHub Actions включены синтаксические и функциональные тесты, `npm audit`, CodeQL и dependency review. Контейнер работает без root, с read-only root filesystem, сброшенными capabilities, `no-new-privileges` и healthcheck. Пути документов ограничены каталогом `data/`. Dependabot, secret scanning, push protection, приватные отчёты об уязвимостях и автоматические security updates включены в репозитории. Подробности — в [SECURITY.md](SECURITY.md).
 
 ## Документация
 
@@ -68,4 +81,3 @@ docker compose build
 ## Лицензия
 
 MIT © 2026 artBass-rip
-

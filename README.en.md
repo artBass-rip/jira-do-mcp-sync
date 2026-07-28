@@ -1,8 +1,8 @@
-# Jira Document Sync
+# TeamWork
 
 > **AI disclosure:** this project was created with the assistance of **OpenAI Codex (GPT-5)**. The maintainer reviewed and accepted the resulting implementation and documentation.
 
-Jira Document Sync periodically retrieves Jira issues through an authenticated Docker MCP Gateway, groups them into a navigable hierarchy, generates Markdown, and serves an editor-style web viewer.
+TeamWork periodically retrieves Jira issues through an authenticated Docker MCP Gateway, groups them into a navigable hierarchy, generates Markdown, and serves an editor-style web viewer.
 
 ## Features
 
@@ -49,6 +49,19 @@ MCP_GATEWAY_FOREGROUND=1 ./start.sh
 
 Open <http://localhost:8080> after startup.
 
+### Network access and authentication
+
+By default Compose binds the application only to `127.0.0.1`. To expose it on a trusted network, enable Basic Auth and explicitly change the bind address:
+
+```bash
+APP_BIND_ADDRESS=0.0.0.0 \
+APP_AUTH_USER=owner \
+APP_AUTH_PASSWORD='use-a-long-random-password' \
+./start.sh
+```
+
+Do not expose the service publicly without HTTPS in front of it. The password is passed at runtime and must never be committed.
+
 ## Runtime data
 
 Generated documents, local comments, logs, and process files live under `data/`. They are intentionally excluded from version control. Local comments are never sent to Jira and never embedded into the generated Markdown.
@@ -63,7 +76,7 @@ docker compose build
 
 ## Security
 
-GitHub Actions run syntax checks, `npm audit`, CodeQL analysis, dependency review, and Dependabot updates. Secret scanning, push protection, private vulnerability reporting, and automated security updates are enabled for the public repository. See [SECURITY.md](SECURITY.md).
+GitHub Actions run syntax and behavioral tests, `npm audit`, CodeQL analysis, dependency review, and Dependabot updates. The container runs as an unprivileged user with a read-only root filesystem, dropped capabilities, `no-new-privileges`, and a healthcheck. Document paths are restricted to `data/`. Secret scanning, push protection, private vulnerability reporting, and automated security updates are enabled for the public repository. See [SECURITY.md](SECURITY.md).
 
 ## Documentation
 
@@ -74,4 +87,3 @@ GitHub Actions run syntax checks, `npm audit`, CodeQL analysis, dependency revie
 ## License
 
 MIT © 2026 artBass-rip
-

@@ -8,6 +8,8 @@ services:
       DATA_DIR: /app/data
       LOG_PATH: /app/data/app.log
       COMMENTS_PATH: /app/data/comments.json
+      APP_AUTH_USER: ${APP_AUTH_USER:-admin}
+      APP_AUTH_PASSWORD: ${APP_AUTH_PASSWORD:-}
       PORT: 8080
     extra_hosts:
       - host.docker.internal:host-gateway
@@ -15,5 +17,19 @@ services:
       - ./grouping.config.json:/app/config/grouping.config.json
       - ./data:/app/data
     ports:
-      - "8080:8080"
+      - "${APP_BIND_ADDRESS:-127.0.0.1}:${APP_PORT:-8080}:8080"
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8080/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     restart: unless-stopped

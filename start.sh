@@ -20,7 +20,10 @@ export MCP_GATEWAY_AUTH_TOKEN
 
 if [ -f "$gateway_pid_file" ]; then
   previous_pid="$(cat "$gateway_pid_file" 2>/dev/null || true)"
-  if [ -n "$previous_pid" ] && kill -0 "$previous_pid" 2>/dev/null; then
+  case "$previous_pid" in ''|*[!0-9]*) previous_pid='' ;; esac
+  previous_command=''
+  if [ -n "$previous_pid" ]; then previous_command="$(ps -p "$previous_pid" -o command= 2>/dev/null || true)"; fi
+  if [ -n "$previous_pid" ] && echo "$previous_command" | grep -q 'docker mcp gateway run' && kill -0 "$previous_pid" 2>/dev/null; then
     kill "$previous_pid" >/dev/null 2>&1 || true
     for _ in $(seq 1 20); do
       kill -0 "$previous_pid" 2>/dev/null || break
@@ -55,7 +58,7 @@ if [ "$ready" -ne 1 ]; then
 fi
 
 docker compose up --build -d
-echo "Jira document sync запущен: http://localhost:8080"
+echo "TeamWork запущен: http://localhost:${APP_PORT:-8080}"
 echo "Docker MCP Gateway PID: $gateway_pid"
 
 if [ "${MCP_GATEWAY_FOREGROUND:-0}" = "1" ]; then

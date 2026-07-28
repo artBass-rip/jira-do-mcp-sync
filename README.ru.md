@@ -35,9 +35,9 @@ cp grouping.config.example.json grouping.config.json
 MCP_PROFILE=my_profile ./start.sh
 ```
 
-Скрипт создаёт временный bearer-токен Gateway и передаёт его только через окружение процессов и контейнера. OAuth Atlassian остаётся под управлением Docker Desktop.
+Скрипт создаёт временный bearer-токен Gateway и передаёт его только через окружение процессов и контейнера. В macOS долгоживущим Gateway управляет `launchd`, поэтому закрытие терминала не останавливает синхронизацию. Временный файл передачи с правами `0600` удаляется сразу после чтения. OAuth Atlassian остаётся под управлением Docker Desktop.
 
-Для запуска под супервизором:
+На системах не macOS доступен запуск под внешним супервизором:
 
 ```bash
 MCP_GATEWAY_FOREGROUND=1 ./start.sh

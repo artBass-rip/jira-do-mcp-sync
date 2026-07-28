@@ -12,6 +12,7 @@ All notable changes are documented here. The format follows Keep a Changelog and
 - Hardened the container with a read-only root filesystem, dropped capabilities, `no-new-privileges`, and a healthcheck.
 - Added behavioral tests for authentication, path confinement, and local comments.
 - Validated stored Gateway PIDs before terminating a previous process.
+- Moved the macOS Gateway lifecycle to `launchd`, independent of the launching terminal.
 
 ## [1.0.0] - 2026-07-29
 

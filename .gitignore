@@ -7,7 +7,7 @@ export_do_jira.mjs
 *.env
 *.log
 *.pid
+.mcp-gateway-token
 .DS_Store
 .idea/
 .vscode/
-

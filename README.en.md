@@ -39,9 +39,9 @@ The Docker MCP profile defaults to `ecom_2_0`. Override it without editing the p
 MCP_PROFILE=my_profile ./start.sh
 ```
 
-The launcher creates an ephemeral Gateway bearer token and passes it only through process/container environment variables. Atlassian OAuth remains managed by Docker Desktop.
+The launcher creates an ephemeral Gateway bearer token and passes it only through process/container environment variables. On macOS, `launchd` owns the long-running Gateway so closing the terminal does not stop synchronization. A mode-`0600` handoff file is deleted immediately after the Gateway reads it. Atlassian OAuth remains managed by Docker Desktop.
 
-For supervisor-style execution:
+On non-macOS systems, supervisor-style execution is available:
 
 ```bash
 MCP_GATEWAY_FOREGROUND=1 ./start.sh

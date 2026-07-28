@@ -3,7 +3,7 @@ services:
     build: .
     environment:
       MCP_URL: http://host.docker.internal:8811/mcp
-      MCP_AUTH_TOKEN: ${MCP_GATEWAY_AUTH_TOKEN}
+      MCP_AUTH_TOKEN: ${MCP_GATEWAY_AUTH_TOKEN:?MCP Gateway token is missing. Start TeamWork with ./start.sh}
       CONFIG_PATH: /app/config/grouping.config.json
       DATA_DIR: /app/data
       LOG_PATH: /app/data/app.log

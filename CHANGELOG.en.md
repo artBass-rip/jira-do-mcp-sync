@@ -13,6 +13,7 @@ All notable changes are documented here. The format follows Keep a Changelog and
 - Added behavioral tests for authentication, path confinement, and local comments.
 - Validated stored Gateway PIDs before terminating a previous process.
 - Moved the macOS Gateway lifecycle to `launchd`, independent of the launching terminal.
+- Rejected direct Compose startup without an MCP token and supplied Docker Desktop credential-helper paths to launchd.
 
 ## [1.0.0] - 2026-07-29
 

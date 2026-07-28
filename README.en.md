@@ -49,6 +49,8 @@ MCP_GATEWAY_FOREGROUND=1 ./start.sh
 
 Open <http://localhost:8080> after startup.
 
+Always use `./start.sh` to create or recreate the application container. Direct `docker compose up` is intentionally rejected because it cannot provide the ephemeral MCP Gateway token and would leave the application returning `401 Unauthorized`. Runtime inspection remains available through the web UI and Docker Desktop.
+
 ### Network access and authentication
 
 By default Compose binds the application only to `127.0.0.1`. To expose it on a trusted network, enable Basic Auth and explicitly change the bind address:

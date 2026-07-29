@@ -12,6 +12,7 @@ TeamWork periodically retrieves Jira issues through an authenticated Docker MCP 
 - Markdown viewer with document outline, search, scroll tracking, and nested folding.
 - Configurable issue-type icons and task status in headings.
 - Local task comments displayed below task headings and managed from a side panel.
+- Local task labels with inline chips, priority management, and label-first grouping.
 - Independent comment storage with automatic cleanup when an issue disappears.
 - Structured JSONL application logs and an in-app log viewer.
 - Containerized runtime with no third-party Node.js runtime dependencies.
@@ -67,6 +68,10 @@ Do not expose the service publicly without HTTPS in front of it. The password is
 ## Runtime data
 
 Generated documents, local comments, logs, and process files live under `data/`. They are intentionally excluded from version control. Local comments are never sent to Jira and never embedded into the generated Markdown.
+
+### Task labels and grouping priority
+
+Open a task with its `💬` action or by clicking an existing label chip. Add up to ten local labels in the task panel. The first label is the grouping label; click another label to promote it. During synchronization, a task with a local label is grouped under `Label: <first label>` instead of a configured theme. Tasks without labels continue to use theme-pattern matching. Labels are stored in `data/labels.json`, are not sent to Jira, and are removed when their task disappears from the synchronized document.
 
 ## Development
 

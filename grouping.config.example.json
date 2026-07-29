@@ -24,6 +24,7 @@
   "grouping": {
     "levels": ["goal", "theme", "placement"],
     "emptyGoalLabel": "No Goal",
+    "labelGroupPrefix": "Label",
     "placementOrder": ["active", "future", "backlog"],
     "placementLabels": {"active": "Active sprint", "future": "Future sprint", "backlog": "Backlog"},
     "closedSprintIssuesGoToBacklog": true,

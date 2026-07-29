@@ -8,6 +8,7 @@ services:
       DATA_DIR: /app/data
       LOG_PATH: /app/data/app.log
       COMMENTS_PATH: /app/data/comments.json
+      LABELS_PATH: /app/data/labels.json
       APP_AUTH_USER: ${APP_AUTH_USER:-admin}
       APP_AUTH_PASSWORD: ${APP_AUTH_PASSWORD:-}
       PORT: 8080

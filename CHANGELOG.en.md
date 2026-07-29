@@ -2,6 +2,15 @@
 
 All notable changes are documented here. The format follows Keep a Changelog and Semantic Versioning.
 
+## [1.2.0] - 2026-07-29
+
+### Added
+
+- Local task labels with task-panel management and inline label chips.
+- Priority ordering: the first label overrides theme grouping during document generation.
+- Automatic document regrouping after label changes and orphan-label cleanup after synchronization.
+- Label storage and grouping behavior tests.
+
 ## [1.1.0] - 2026-07-29
 
 ### Changed

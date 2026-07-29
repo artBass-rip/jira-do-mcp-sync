@@ -17,6 +17,11 @@ function themeFor(issue, config) {
     || config.grouping.fallbackTheme;
 }
 
+export function groupFor(issue, config, labelsByIssue = {}) {
+  const label = labelsByIssue[issue.key]?.[0];
+  return label ? `${config.grouping.labelGroupPrefix || 'Метка'}: ${label}` : themeFor(issue, config);
+}
+
 function placementFor(issue, config) {
   const active = issue.sprints.find(s => s.state === 'active');
   if (active) return {key: 'active', label: `${config.grouping.placementLabels.active} — ${active.name}`};
@@ -25,11 +30,11 @@ function placementFor(issue, config) {
   return {key: 'backlog', label: config.grouping.placementLabels.backlog};
 }
 
-function buildTree(issues, config) {
+function buildTree(issues, config, labelsByIssue) {
   const tree = new Map();
   for (const issue of issues) {
     const goal = issue.goal || config.grouping.emptyGoalLabel;
-    const theme = themeFor(issue, config);
+    const theme = groupFor(issue, config, labelsByIssue);
     const placement = placementFor(issue, config);
     if (!tree.has(goal)) tree.set(goal, new Map());
     if (!tree.get(goal).has(theme)) tree.get(goal).set(theme, new Map());
@@ -39,8 +44,8 @@ function buildTree(issues, config) {
   return tree;
 }
 
-function render(issues, config) {
-  const tree = buildTree(issues, config);
+function render(issues, config, labelsByIssue) {
+  const tree = buildTree(issues, config, labelsByIssue);
   const jiraBaseUrl = String(config.jira.baseUrl || '').replace(/\/$/, '');
   let md = `# ${config.document.title}\n\n`;
   md += `Дата актуализации: ${new Date().toISOString()}  \nИсточник: Jira через Docker MCP Gateway  \nВсего задач: **${issues.length}**\n\n`;
@@ -63,6 +68,7 @@ function render(issues, config) {
           if (config.document.includeAssignee) md += `- Исполнитель: ${issue.assignee}\n`;
           if (config.document.includeStatus) md += `- Статус: ${issue.status}\n`;
           if (config.document.includeIssueType) md += `- Тип: ${issue.type}\n`;
+          if (labelsByIssue[issue.key]?.length) md += `- Метки TeamWork: ${labelsByIssue[issue.key].join(', ')}\n`;
           if (config.document.includeParent && issue.parent) md += `- Родительская задача: [${issue.parent}](${jiraBaseUrl}/browse/${issue.parent})\n`;
           if (config.document.includeDescription) md += `\n**Описание**\n\n${normalizeDescription(issue.description)}\n\n`;
         }
@@ -72,7 +78,7 @@ function render(issues, config) {
   return md;
 }
 
-export async function synchronize(configPath, mcpUrl, mcpAuthToken = '', dataDir = 'data', log = () => {}) {
+export async function synchronize(configPath, mcpUrl, mcpAuthToken = '', dataDir = 'data', labelsByIssue = {}, log = () => {}) {
   const config = JSON.parse(readFileSync(configPath, 'utf8'));
   log('sync.config_loaded', 'Конфигурация синхронизации загружена', {project: config.jira.projectKey});
   const mcp = new McpClient(mcpUrl, mcpAuthToken);
@@ -92,7 +98,7 @@ return JSON.stringify(all.map(i=>({key:i.key,title:i.fields.summary||'',descript
   log('sync.issues_received', 'Задачи Jira получены', {issues: issues.length});
   const output = resolveInside(dataDir, config.document.outputPath);
   mkdirSync(dirname(output), {recursive: true});
-  writeFileSync(output, render(issues, config));
+  writeFileSync(output, render(issues, config, labelsByIssue));
   log('sync.document_written', 'Markdown-документ сохранён', {issues: issues.length, output});
   return {issues: issues.length, issueKeys: issues.map(issue => issue.key), output, updatedAt: new Date().toISOString()};
 }

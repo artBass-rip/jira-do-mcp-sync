@@ -30,7 +30,14 @@
         <article id="markdown" class="markdown"></article>
       </div>
       <aside id="comments-panel" class="comments-panel" aria-label="Комментарии к задаче" hidden>
-        <div class="comments-head"><div><span>Локальные комментарии</span><strong id="comments-task"></strong></div><button id="close-comments" class="icon-button" aria-label="Закрыть комментарии">×</button></div>
+        <div class="comments-head"><div><span>Задача</span><strong id="comments-task"></strong></div><button id="close-comments" class="icon-button" aria-label="Закрыть панель задачи">×</button></div>
+        <section class="labels-editor">
+          <div class="labels-title"><strong>Метки</strong><span>Первая перекрывает theme</span></div>
+          <div id="task-labels-editor" class="task-labels-editor"></div>
+          <form id="label-form" class="label-form"><input id="label-input" maxlength="40" placeholder="Новая метка" autocomplete="off"><button class="quiet" type="submit">Добавить</button></form>
+          <p id="label-message" role="status"></p>
+        </section>
+        <div class="comments-section-title">Локальные комментарии</div>
         <div id="comments-list" class="comments-list"></div>
         <form id="comment-form" class="comment-form">
           <label for="comment-text">Новый комментарий</label>

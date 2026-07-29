@@ -4,6 +4,7 @@ const slugCounts = new Map();
 let selectedIssueKey = null;
 let commentCounts = {};
 let commentsByIssue = {};
+let taskLabelsByIssue = {};
 
 function slug(value) {
   const base = value.toLowerCase().replace(/<[^>]+>/g, '').replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-|-$/g, '') || 'section';
@@ -143,7 +144,27 @@ function wireViewer(headings) {
     event.stopPropagation();
     openComments(button.dataset.issueKey);
   }));
+  renderTaskLabels();
   refreshCommentBadges();
+}
+
+function renderTaskLabels() {
+  document.querySelectorAll('.task-labels').forEach(node => node.remove());
+  document.querySelectorAll('.markdown h5[data-issue-key]').forEach(heading => {
+    const labels = taskLabelsByIssue[heading.dataset.issueKey] || [];
+    if (!labels.length) return;
+    const wrapper = document.createElement('span');
+    wrapper.className = 'task-labels';
+    wrapper.innerHTML = labels.map((label, index) => `<button class="task-label${index === 0 ? ' grouping-label' : ''}" title="${index === 0 ? 'Группирующая метка' : 'Локальная метка'}">${escapeHtml(label)}</button>`).join('');
+    heading.querySelector('.comment-trigger').before(wrapper);
+    wrapper.querySelectorAll('button').forEach(button => button.addEventListener('click', event => { event.preventDefault(); openComments(heading.dataset.issueKey); }));
+  });
+}
+
+async function loadAllLabels() {
+  const result = await fetch('/api/labels').then(response => response.json());
+  taskLabelsByIssue = result.labels || {};
+  renderTaskLabels();
 }
 
 function refreshCommentBadges() {
@@ -186,7 +207,37 @@ async function openComments(issueKey) {
   $('#comments-panel').hidden = false;
   $('.document-view').classList.add('comments-open');
   $('#comment-message').textContent = '';
+  $('#label-message').textContent = '';
+  renderLabelEditor();
   await loadComments();
+}
+
+function renderLabelEditor() {
+  const labels = taskLabelsByIssue[selectedIssueKey] || [];
+  $('#task-labels-editor').innerHTML = labels.length ? labels.map((label, index) => `<span class="editable-label${index === 0 ? ' primary-label' : ''}"><button class="promote-label" data-label-index="${index}" title="${index === 0 ? 'Используется для группировки' : 'Сделать группирующей'}">${escapeHtml(label)}</button><button class="remove-label" data-label-index="${index}" aria-label="Удалить метку ${escapeHtml(label)}">×</button></span>`).join('') : '<span class="labels-empty">Метки не назначены — используется theme</span>';
+  document.querySelectorAll('.promote-label').forEach(button => button.addEventListener('click', () => {
+    const index = Number(button.dataset.labelIndex);
+    if (index === 0) return;
+    const next = [...labels];
+    next.unshift(next.splice(index, 1)[0]);
+    saveLabels(next);
+  }));
+  document.querySelectorAll('.remove-label').forEach(button => button.addEventListener('click', () => {
+    saveLabels(labels.filter((_, index) => index !== Number(button.dataset.labelIndex)));
+  }));
+}
+
+async function saveLabels(labels) {
+  if (!selectedIssueKey) return;
+  const issueKey = selectedIssueKey;
+  $('#label-message').textContent = 'Перегруппировка документа…';
+  const response = await fetch(`/api/labels/${encodeURIComponent(issueKey)}`, {method: 'PUT', headers: {'content-type': 'application/json'}, body: JSON.stringify({labels})});
+  const result = await response.json();
+  if (!response.ok) { $('#label-message').textContent = result.error; return; }
+  taskLabelsByIssue[issueKey] = result.labels;
+  $('#label-message').textContent = result.sync?.lastError ? `Метки сохранены, ошибка перегруппировки: ${result.sync.lastError}` : 'Метки сохранены, документ перегруппирован';
+  renderLabelEditor();
+  await load();
 }
 
 function closeComments() {
@@ -232,7 +283,7 @@ async function load() {
   $('#editor').value = JSON.stringify(cfg, null, 2);
   $('#document-meta').textContent = `${doc.split('\n').length.toLocaleString()} строк · ${parsed.headings.length} разделов`;
   wireViewer(parsed.headings);
-  await loadAllComments();
+  await Promise.all([loadAllComments(), loadAllLabels()]);
   showStatus(status);
 }
 
@@ -325,6 +376,14 @@ $('#delete-comments').addEventListener('click', async () => {
   commentCounts[issueKey] = 0;
   refreshCommentBadges();
   await loadComments();
+});
+$('#label-form').addEventListener('submit', event => {
+  event.preventDefault();
+  const label = $('#label-input').value.trim();
+  if (!label || !selectedIssueKey) return;
+  const current = taskLabelsByIssue[selectedIssueKey] || [];
+  $('#label-input').value = '';
+  saveLabels([...current, label]);
 });
 
 load();
